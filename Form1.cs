@@ -57,7 +57,7 @@ namespace Aysel
             Application.Exit();
         }
 
-
+        
         private void createMap()
         {
             map = new Level(ref game, 25, 19, 32);
@@ -94,8 +94,6 @@ namespace Aysel
 
        }
 
-
-       //ex4
        private void animateHero()
        {
            int startFrame = ayselDir * 8;
@@ -108,7 +106,7 @@ namespace Aysel
         private void doUpdate()
         {
             //move the tilemap scroll position
-            int steps = 4;
+            int steps = 8;
             // take maps scroll position
 
 
@@ -188,10 +186,15 @@ namespace Aysel
                 // draw the hero
                 aysel.Draw();
               
+                // print text to form
+                string text = "";
+                text = "Scroll " + map.ScrollPos.ToString() +
+                    " Tile " + map.GridPos.ToString() +
+                    "\nPlayer = " + aysel.Position.ToString();
+               
 
-
-                game.Print(0, 0, "Scroll: " + map.ScrollPos.ToString());
-                game.Print(0, 20, "FPS: " + frameRate.ToString());
+                game.Print(0, 0, text);
+                game.Print(0, 50, "FPS: " + frameRate.ToString());
                 //refresh window
                 game.Update();
                 Application.DoEvents();
