@@ -13,7 +13,7 @@ using System.Windows.Forms;
 namespace Aysel
 {
     public partial class Form1 : Form
-    {   
+    {
         public struct keyStates
         {
             public bool up, down, left, right;
@@ -22,7 +22,10 @@ namespace Aysel
         Game game;
         Level map;
         keyStates keyState;
+        
+        // base hero
         Sprite aysel;
+
         int ayselDir = 0;
         int ticks;
         int drawLast = 0;
@@ -61,22 +64,51 @@ namespace Aysel
             map.loadPalette("palette.bmp", 5);
             map.loadTilemap("map1.level");
         }
+        
+       private void createHero()
+       {
+           aysel = new Sprite(ref game);
+           aysel.Image = game.LoadBitmap("hero_girl_axe_shield_walk.png");
+           aysel.Columns = 8;
+           aysel.TotalFrames = 8 * 8;
+           aysel.Size = new Size(128, 128);
+           aysel.Position = new PointF(50, 490);
+           aysel.CurrentFrame = game.Random(64);
+       }
 
-        private void createHero()
-        {
-            aysel = new Sprite(ref game);
-            aysel.Image = game.LoadBitmap("hero_girl_axe_shield_walk.png");
-            aysel.Columns = 8;
-            aysel.TotalFrames = 8 * 8;
-            aysel.Size = new Size(128, 128);
-            aysel.Position = new PointF(50, 490);
-            aysel.CurrentFrame = game.Random(72);
-        }
+       private void updateHeroDir()
+       {
+           if (keyState.up && keyState.right)
+               ayselDir = 1;
+           else if (keyState.right && keyState.down)
+               ayselDir = 3;
+           else if (keyState.down && keyState.left)
+               ayselDir = 5;
+           else if (keyState.left && keyState.up)
+               ayselDir = 7;
+           else if (keyState.up) ayselDir = 0;
+           else if (keyState.right) ayselDir = 2;
+           else if (keyState.down) ayselDir = 4;
+           else if (keyState.left) ayselDir = 6;
+           else ayselDir = -1;
 
+       }
+
+
+       //ex4
+       private void animateHero()
+       {
+           int startFrame = ayselDir * 8;
+           int endFrame = startFrame + 8;
+
+           if (ayselDir != -1)
+               aysel.Animate(startFrame, endFrame);
+       }
+        
         private void doUpdate()
         {
             //move the tilemap scroll position
-            int steps = 8;
+            int steps = 4;
             // take maps scroll position
 
 
@@ -135,8 +167,13 @@ namespace Aysel
             else if (aysel.X > 800 - 65) aysel.X = 800 - 65;
             if (aysel.Y < -48) aysel.Y = -48;
             else if (aysel.Y > 600 - 81) aysel.Y = 600 - 81;
+            
+            // orient aysel to the right direction 
+            updateHeroDir();
 
 
+            // get the untimed core frame rate
+            int frameRate = game.FrameRate();
 
             //drawing code should be limited to 60 fps
             ticks = Environment.TickCount;
@@ -146,8 +183,15 @@ namespace Aysel
                 // draw the map
                 map.Draw(0, 0, 800, 600);
 
+                // animate hero
+                animateHero();
+                // draw the hero
                 aysel.Draw();
+              
 
+
+                game.Print(0, 0, "Scroll: " + map.ScrollPos.ToString());
+                game.Print(0, 20, "FPS: " + frameRate.ToString());
                 //refresh window
                 game.Update();
                 Application.DoEvents();
@@ -158,6 +202,7 @@ namespace Aysel
                 Thread.Sleep(1);
             }
         }
+        
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -199,5 +244,6 @@ namespace Aysel
         {
             game.GameOver = true;
         }
-    }
+
+  }
 }
