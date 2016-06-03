@@ -27,18 +27,15 @@ namespace Aysel
         Character aysel;
         // quest giver
         Character ilhan;
-
+        Dialogue ilhanDialogue;
 
         int ticks;
         int drawLast = 0;
 
-        bool portalFlag = false;
-        Point portalTarget;
-
         // quest manager helper's
         bool talkFlag = false;
         bool talking = false;
-
+        
         public Form1()
         {
             InitializeComponent();
@@ -60,6 +57,9 @@ namespace Aysel
             // load ilhan, the quest manager
             createIlhan();
 
+            // create quest dialogue
+            ilhanDialogue = new Dialogue(ref game);
+
             while (!game.GameOver)
             {
                 doUpdate();
@@ -79,7 +79,8 @@ namespace Aysel
             aysel = new Character(ref game);
             aysel.Load("aysel.char");
             //aysel.Position = new Point(400 - 48, 300 - 48);
-            aysel.Position = new Point(180, 428);
+            //aysel.Position = new Point(200, 450);
+            aysel.Position = new Point(40, 428);
         }
 
         private void createIlhan()
@@ -88,21 +89,7 @@ namespace Aysel
             ilhan.Load("ilhan.char");
             ilhan.Position = new Point(352, 164);
         }
-
-        
-        
-        /*
-       private void createHero()
-       {
-           aysel = new Sprite(ref game);
-           aysel.Image = game.LoadBitmap("aysel_walk.png");
-           aysel.Columns = 8;
-           aysel.TotalFrames = 8 * 8;
-           aysel.Size = new Size(128, 128);
-           aysel.Position = new PointF(50, 490);
-           aysel.CurrentFrame = game.Random(64);
-       }
-       */
+    
        private void updateHeroDir()
        {
            if (keyState.up && keyState.right)
@@ -133,6 +120,10 @@ namespace Aysel
             aysel.Draw();
 
         }
+        /*
+         * Draw the quests manager sprite
+         * in order of Aysel's scroll position
+         */
         private void doIlhan()
         {
             float relativeX = 0, relativeY = 0;
@@ -183,23 +174,67 @@ namespace Aysel
                     centery - talkRadius, talkRadius * 2, talkRadius * 2);
                 game.Device.DrawEllipse(color, circleRect);
 
+
+            }
+                //is playing trying to talk to this quest manager?
+                if (dist < talkRadius)
+                {
+                    if (talkFlag) talking = true;
+                }
+                else  talking = false; 
+            
+            System.Diagnostics.Debug.Write("talking" +talking);
+            System.Diagnostics.Debug.Write("talkflag" + talkFlag);
+        }
+        
+        private void doDialogue()
+        {
+            if (!talking) return;
+
+            //prepare the dialogue
+            ilhanDialogue.Title = "Ilhan The LifeLover";
+            ilhanDialogue.Message = "Greetings visitor. Oh my goodness, you look " +
+                "like you've  just come to Avgo, and you are ready to fight against the haters." +
+                "Your sister, Anna, is prisoned inside a small forest. You will notice" +
+                "that the are some spiders arround when searching her. Be carefull, the are not harmfull yet but" +
+                "they will soon be. The haters are the farmers..they are sowing ant seeds. ! "+
+                "Be sure you pick up all the available gold in the island, becouse you will need"+
+                "it to fight the dragon...Good luck Aysel finding your sister.";
+            ilhanDialogue.setButtonText(1, "Thank you, Ilhan");
+          
+            //reposition dialogue window 
+            if (aysel.CenterPos.X < 400)
+            {
+                if (aysel.CenterPos.Y < 300)
+                    ilhanDialogue.setCorner(Dialogue.Positions.LowerRight);
+                else
+                    ilhanDialogue.setCorner(Dialogue.Positions.UpperRight);
+            } else {
+                if (aysel.CenterPos.Y < 300)
+                    ilhanDialogue.setCorner(Dialogue.Positions.LowerLeft);
+                else
+                    ilhanDialogue.setCorner(Dialogue.Positions.UpperLeft);
             }
 
-            //is playing trying to talk to this quest manager?
-            if (dist < talkRadius)
+            //draw dialogue and look for selection
+            ilhanDialogue.updateMouse(game.MousePos, game.MouseButton);
+            ilhanDialogue.Draw();
+            if (ilhanDialogue.Selection > 0)
             {
-                if (talkFlag) talking = true;
+                talking = false;
+                ilhanDialogue.Selection = 0;
             }
-            else talking = false;
-        }
+    
+       }
+
+   
 
         private void doUpdate()
         {
             //move the tilemap scroll position
             int steps = 4;
+
             // take maps scroll position
-
-
             PointF pos =  map.ScrollPos;
 
             //up key movement
@@ -247,8 +282,8 @@ namespace Aysel
             }
 
             // set posisition to level scroll position and then update level
-            if (pos.X < 0) pos.X = 0;
-            if (pos.Y < 0) pos.Y = 0;
+           // if (pos.X < 0) pos.X = 0;
+            //if (pos.Y < 0) pos.Y = 0;
             map.ScrollPos = pos;
             map.Update();
 
@@ -269,7 +304,8 @@ namespace Aysel
                 doAysel();
                 // draw the quest manager
                 doIlhan();
-
+                // make ilhan and aysel talk
+                doDialogue();
 
                 // print text to form
                 //print stats
@@ -294,17 +330,7 @@ namespace Aysel
                     game.Print(0, y, "Collidable");
                     y += 20;
                 }
-                if (ts.portal)
-                {
-                    game.Print(0, y, "Portal to " + ts.portalx.ToString() +
-                        "," + ts.portaly.ToString());
-                    portalFlag = true;
-                    portalTarget = new Point(ts.portalx - feet.X / 32,
-                        ts.portaly - feet.Y / 32);
-                    y += 20;
-                }
-                else
-                    portalFlag = false;
+            
 
                 //highlight collision areas around player
                 game.Device.DrawRectangle(Pens.Blue, aysel.GetSprite.Bounds);
@@ -345,6 +371,8 @@ namespace Aysel
                 case Keys.A: keyState.left = true; break;
                 case Keys.Right:
                 case Keys.D: keyState.right = true; break;
+                case Keys.Space: talkFlag = true; break;
+
             }
         }
 
@@ -361,9 +389,7 @@ namespace Aysel
                 case Keys.A: keyState.left = false; break;
                 case Keys.Right:
                 case Keys.D: keyState.right = false; break;
-                case Keys.Space:
-                    if (portalFlag) map.GridPos = portalTarget;
-                    break;
+                case Keys.Space: talkFlag = false; break;
                 case Keys.D1:
                     aysel.AnimationState = Character.AnimationStates.Walking;
                     break;
@@ -373,7 +399,7 @@ namespace Aysel
                 case Keys.D3:
                     aysel.AnimationState = Character.AnimationStates.Dying;
                     break;
-
+                
             }
         }
 
