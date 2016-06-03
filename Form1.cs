@@ -50,8 +50,10 @@ namespace Aysel
             // create the map
             createMap();
             // create the hero
-            //createHero();
+            //load  aysel
             createAysel();
+            // load ilhan, the quest manager
+            createIlhan();
 
             while (!game.GameOver)
             {
@@ -59,6 +61,7 @@ namespace Aysel
             }
             Application.Exit();
         }
+
 
         private void createAysel()
         {
@@ -110,9 +113,21 @@ namespace Aysel
            else aysel.Direction = -1;
 
        }
+        private void doAysel()
+        {
+            //limit player sprite to the screen boundary
+            if (aysel.X < -32) aysel.X = -32;
+            else if (aysel.X > 800 - 65) aysel.X = 800 - 65;
+            if (aysel.Y < -48) aysel.Y = -48;
+            else if (aysel.Y > 600 - 81) aysel.Y = 600 - 81;
 
-  
-        
+            // orient aysel to the right direction 
+            updateHeroDir();
+            aysel.Draw();
+
+        }
+
+
         private void doUpdate()
         {
             //move the tilemap scroll position
@@ -172,15 +187,7 @@ namespace Aysel
             map.ScrollPos = pos;
             map.Update();
 
-            //limit player sprite to the screen boundary
-            if (aysel.X < -32) aysel.X = -32;
-            else if (aysel.X > 800 - 65) aysel.X = 800 - 65;
-            if (aysel.Y < -48) aysel.Y = -48;
-            else if (aysel.Y > 600 - 81) aysel.Y = 600 - 81;
-            
-            // orient aysel to the right direction 
-            updateHeroDir();
-
+           
 
             // get the untimed core frame rate
             int frameRate = game.FrameRate();
@@ -192,12 +199,10 @@ namespace Aysel
                 drawLast = ticks;
                 // draw the map
                 map.Draw(0, 0, 800, 600);
-
-                // animate hero
-                //animateHero();
-                // draw the hero
-                aysel.Draw();
-
+                
+                // animate aysel
+                doAysel();
+                ilhan.Draw();
                 // print text to form
                 //print stats
                 game.Print(700, 0, frameRate.ToString());
