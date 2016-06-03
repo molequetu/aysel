@@ -28,6 +28,9 @@ namespace Aysel
         // gameover flag
         private bool p_gameOver;
 
+        private Point p_mousePos;
+        private MouseButtons p_mouseBtn;
+
         public Game(ref Form form, int width, int height)
         {
             Trace.WriteLine("Game class constructor");
@@ -207,5 +210,4 @@ namespace Aysel
         }
     }
 
-}
 }
