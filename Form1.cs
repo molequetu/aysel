@@ -24,12 +24,12 @@ namespace Aysel
         keyStates keyState;
         
         // base hero
-        Sprite aysel;
-
-        int ayselDir = 0;
+        Character aysel;
         int ticks;
         int drawLast = 0;
 
+        bool portalFlag = false;
+        Point portalTarget;
 
         public Form1()
         {
@@ -47,8 +47,8 @@ namespace Aysel
             // create the map
             createMap();
             // create the hero
-            createHero();
-
+            //createHero();
+            createAysel();
 
             while (!game.GameOver)
             {
@@ -57,7 +57,12 @@ namespace Aysel
             Application.Exit();
         }
 
-        
+        private void createAysel()
+        {
+            aysel = new Character(ref game);
+            aysel.Load("aysel.char");
+            aysel.Position = new Point(400 - 48, 300 - 48);
+        }
         private void createMap()
         {
             map = new Level(ref game, 25, 19, 32);
@@ -65,48 +70,42 @@ namespace Aysel
             map.loadTilemap("map1.level");
         }
         
+        /*
        private void createHero()
        {
            aysel = new Sprite(ref game);
-           aysel.Image = game.LoadBitmap("hero_girl_axe_shield_walk.png");
+           aysel.Image = game.LoadBitmap("aysel_walk.png");
            aysel.Columns = 8;
            aysel.TotalFrames = 8 * 8;
            aysel.Size = new Size(128, 128);
            aysel.Position = new PointF(50, 490);
            aysel.CurrentFrame = game.Random(64);
        }
-
+       */
        private void updateHeroDir()
        {
            if (keyState.up && keyState.right)
-               ayselDir = 1;
+               aysel.Direction = 1;
            else if (keyState.right && keyState.down)
-               ayselDir = 3;
+               aysel.Direction = 3;
            else if (keyState.down && keyState.left)
-               ayselDir = 5;
+               aysel.Direction = 5;
            else if (keyState.left && keyState.up)
-               ayselDir = 7;
-           else if (keyState.up) ayselDir = 0;
-           else if (keyState.right) ayselDir = 2;
-           else if (keyState.down) ayselDir = 4;
-           else if (keyState.left) ayselDir = 6;
-           else ayselDir = -1;
+               aysel.Direction = 7;
+           else if (keyState.up) aysel.Direction = 0;
+           else if (keyState.right) aysel.Direction = 2;
+           else if (keyState.down) aysel.Direction = 4;
+           else if (keyState.left) aysel.Direction = 6;
+           else aysel.Direction = -1;
 
        }
 
-       private void animateHero()
-       {
-           int startFrame = ayselDir * 8;
-           int endFrame = startFrame + 8;
-
-           if (ayselDir != -1)
-               aysel.Animate(startFrame, endFrame);
-       }
+  
         
         private void doUpdate()
         {
             //move the tilemap scroll position
-            int steps = 8;
+            int steps = 4;
             // take maps scroll position
 
 
@@ -157,6 +156,8 @@ namespace Aysel
             }
 
             // set posisition to level scroll position and then update level
+            if (pos.X < 0) pos.X = 0;
+            if (pos.Y < 0) pos.Y = 0;
             map.ScrollPos = pos;
             map.Update();
 
@@ -182,19 +183,51 @@ namespace Aysel
                 map.Draw(0, 0, 800, 600);
 
                 // animate hero
-                animateHero();
+                //animateHero();
                 // draw the hero
                 aysel.Draw();
-              
-                // print text to form
-                string text = "";
-                text = "Scroll " + map.ScrollPos.ToString() +
-                    " Tile " + map.GridPos.ToString() +
-                    "\nPlayer = " + aysel.Position.ToString();
-               
 
-                game.Print(0, 0, text);
-                game.Print(0, 50, "FPS: " + frameRate.ToString());
+                // print text to form
+                //print stats
+                game.Print(700, 0, frameRate.ToString());
+                int y = 0;
+                game.Print(0, y, "Scroll " + map.ScrollPos.ToString());
+                y += 20;
+                game.Print(0, y, "Player " + aysel.Position.ToString());
+                y += 20;
+
+
+                Point feet = HeroFeet();
+
+                int tilex = (int)(map.ScrollPos.X + feet.X) / 32;
+                int tiley = (int)(map.ScrollPos.Y + feet.Y) / 32;
+                Level.tilemapStruct ts = map.getTile(tilex, tiley);
+                game.Print(0, y, "Tile " + tilex.ToString() + "," +
+                    tiley.ToString() + " = " + ts.tilenum.ToString());
+                y += 20;
+                if (ts.collidable)
+                {
+                    game.Print(0, y, "Collidable");
+                    y += 20;
+                }
+                if (ts.portal)
+                {
+                    game.Print(0, y, "Portal to " + ts.portalx.ToString() +
+                        "," + ts.portaly.ToString());
+                    portalFlag = true;
+                    portalTarget = new Point(ts.portalx - feet.X / 32,
+                        ts.portaly - feet.Y / 32);
+                    y += 20;
+                }
+                else
+                    portalFlag = false;
+
+                //highlight collision areas around player
+                game.Device.DrawRectangle(Pens.Blue, aysel.GetSprite.Bounds);
+                game.Device.DrawRectangle(Pens.Red, feet.X + 16 - 1,
+                    feet.Y + 16 - 1, 2, 2);
+                game.Device.DrawRectangle(Pens.Red, feet.X, feet.Y, 32, 32);
+
                 //refresh window
                 game.Update();
                 Application.DoEvents();
@@ -205,7 +238,11 @@ namespace Aysel
                 Thread.Sleep(1);
             }
         }
-        
+        private Point HeroFeet()
+        {
+            return new Point((int)(aysel.X + 32), (int)(aysel.Y + 32 + 16));
+        }
+
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -240,6 +277,19 @@ namespace Aysel
                 case Keys.A: keyState.left = false; break;
                 case Keys.Right:
                 case Keys.D: keyState.right = false; break;
+                case Keys.Space:
+                    if (portalFlag) map.GridPos = portalTarget;
+                    break;
+                case Keys.D1:
+                    aysel.AnimationState = Character.AnimationStates.Walking;
+                    break;
+                case Keys.D2:
+                    aysel.AnimationState = Character.AnimationStates.Attacking;
+                    break;
+                case Keys.D3:
+                    aysel.AnimationState = Character.AnimationStates.Dying;
+                    break;
+
             }
         }
 
