@@ -179,6 +179,33 @@ namespace Aysel
             return p_random.Next(min, max);
         }
 
+        public double Distance(PointF first, PointF second)
+        {
+            float deltaX = second.X - first.X;
+            float deltaY = second.Y - first.Y;
+            double dist = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+            return dist;
+        }
 
+        public double Distance(float x1, float x2, float y1, float y2)
+        {
+            PointF first = new PointF(x1, x2);
+            PointF second = new PointF(x2, y2);
+            return Distance(first, second);
+        }
+
+        public Point MousePos
+        {
+            get { return p_mousePos; }
+            set { p_mousePos = value; }
+        }
+
+        public MouseButtons MouseButton
+        {
+            get { return p_mouseBtn; }
+            set { p_mouseBtn = value; }
+        }
     }
+
+}
 }
