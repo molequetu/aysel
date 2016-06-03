@@ -25,6 +25,7 @@ namespace Aysel
         
         // base hero
         Character aysel;
+        // quest giver
         Character ilhan;
 
 
@@ -33,6 +34,10 @@ namespace Aysel
 
         bool portalFlag = false;
         Point portalTarget;
+
+        // quest manager helper's
+        bool talkFlag = false;
+        bool talking = false;
 
         public Form1()
         {
@@ -62,27 +67,29 @@ namespace Aysel
             Application.Exit();
         }
 
-
-        private void createAysel()
-        {
-            aysel = new Character(ref game);
-            aysel.Load("aysel.char");
-            aysel.Position = new Point(400 - 48, 300 - 48);
-        }
-
-        private void createIlhan()
-        {
-            ilhan = new Character(ref game);
-            ilhan.Load("ilhan.char");
-            ilhan.Position = new Point(400 - 48, 300 - 48);
-        }
-
         private void createMap()
         {
             map = new Level(ref game, 25, 19, 32);
             map.loadPalette("palette.bmp", 5);
             map.loadTilemap("map1.level");
         }
+
+        private void createAysel()
+        {
+            aysel = new Character(ref game);
+            aysel.Load("aysel.char");
+            //aysel.Position = new Point(400 - 48, 300 - 48);
+            aysel.Position = new Point(180, 428);
+        }
+
+        private void createIlhan()
+        {
+            ilhan = new Character(ref game);
+            ilhan.Load("ilhan.char");
+            ilhan.Position = new Point(352, 164);
+        }
+
+        
         
         /*
        private void createHero()
@@ -121,12 +128,70 @@ namespace Aysel
             if (aysel.Y < -48) aysel.Y = -48;
             else if (aysel.Y > 600 - 81) aysel.Y = 600 - 81;
 
-            // orient aysel to the right direction 
+            // orient aysel to the right direction  and draw
             updateHeroDir();
             aysel.Draw();
 
         }
+        private void doIlhan()
+        {
+            float relativeX = 0, relativeY = 0;
+            int talkRadius = 70;
+            Pen color;
 
+            //draw the vendor sprite
+            if (ilhan.X > map.ScrollPos.X &&
+                ilhan.X < map.ScrollPos.X + 23 * 32 &&
+                ilhan.Y > map.ScrollPos.Y &&
+                ilhan.Y < map.ScrollPos.Y + 17 * 32)
+            {
+                relativeX = Math.Abs(map.ScrollPos.X - ilhan.X);
+                relativeY = Math.Abs(map.ScrollPos.Y - ilhan.Y);
+                ilhan.GetSprite.Draw((int)relativeX, (int)relativeY);
+            }
+
+            //get center of hero sprite
+            PointF heroCenter = aysel.FootPos;
+            heroCenter.X += 16;
+            heroCenter.Y += 16;
+            game.Device.DrawRectangle(Pens.Red, heroCenter.X - 2,
+                heroCenter.Y - 2, 4, 4);
+
+            //get center of NPC
+            PointF questManagerCenter = new Point((int)relativeX, (int)relativeY);
+            questManagerCenter.X += ilhan.GetSprite.Width / 2;
+            questManagerCenter.Y += ilhan.GetSprite.Height / 2;
+            game.Device.DrawRectangle(Pens.Red, questManagerCenter.X - 2,
+                questManagerCenter.Y - 2, 4, 4);
+
+            double dist = game.Distance(heroCenter, questManagerCenter);
+
+            // if hero is close to NPC draw a line and then activate-like diaologue
+            if (dist < 270)
+            {
+                if (dist < talkRadius)
+                    color = new Pen(Brushes.Blue, 2.0f);
+                else
+                    color = new Pen(Brushes.Red, 2.0f);
+                game.Device.DrawLine(color, heroCenter, questManagerCenter);
+
+                //draw circle around vendor to show talk radius
+                float spriteSize = ilhan.GetSprite.Width / 2;
+                float centerx = relativeX + spriteSize;
+                float centery = relativeY + spriteSize;
+                RectangleF circleRect = new RectangleF(centerx - talkRadius,
+                    centery - talkRadius, talkRadius * 2, talkRadius * 2);
+                game.Device.DrawEllipse(color, circleRect);
+
+            }
+
+            //is playing trying to talk to this quest manager?
+            if (dist < talkRadius)
+            {
+                if (talkFlag) talking = true;
+            }
+            else talking = false;
+        }
 
         private void doUpdate()
         {
@@ -200,9 +265,12 @@ namespace Aysel
                 // draw the map
                 map.Draw(0, 0, 800, 600);
                 
-                // animate aysel
+                // draw and animate aysel
                 doAysel();
-                ilhan.Draw();
+                // draw the quest manager
+                doIlhan();
+
+
                 // print text to form
                 //print stats
                 game.Print(700, 0, frameRate.ToString());
