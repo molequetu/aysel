@@ -25,6 +25,9 @@ namespace Aysel
         
         // base hero
         Character aysel;
+        Character ilhan;
+
+
         int ticks;
         int drawLast = 0;
 
@@ -63,6 +66,14 @@ namespace Aysel
             aysel.Load("aysel.char");
             aysel.Position = new Point(400 - 48, 300 - 48);
         }
+
+        private void createIlhan()
+        {
+            ilhan = new Character(ref game);
+            ilhan.Load("ilhan.char");
+            ilhan.Position = new Point(400 - 48, 300 - 48);
+        }
+
         private void createMap()
         {
             map = new Level(ref game, 25, 19, 32);
