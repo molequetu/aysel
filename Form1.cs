@@ -14,24 +14,21 @@ namespace Aysel
 {
     public partial class Form1 : Form
     {
-        public struct keyStates
-        {
-            public bool up, down, left, right;
-        }
-
+       
         Game game;
-        Level map;
-        keyStates keyState;
+        
         
         // base hero
-        Character aysel;
+        //Character aysel;
         // quest giver
         Character ilhan;
         Dialogue ilhanDialogue;
 
-        int ticks;
-        int drawLast = 0;
+        Character ants;
+        Character farmers;
 
+        //int ticks;
+        int drawLast = 0;
         // quest manager helper's
         bool talkFlag = false;
         bool talking = false;
@@ -45,17 +42,17 @@ namespace Aysel
         {
             this.Text = "Aysel, chronicle I";
 
-            // create game object
-            Form form = (Form)this;
-            game = new Game(ref form, 800, 600);
-
+            // create game 
+            createGame();
             // create the map
             createMap();
-            // create the hero
-            //load  aysel
+
+           // create hero and player Aysel
             createAysel();
+
             // load ilhan, the quest manager
             createIlhan();
+
 
             // create quest dialogue
             ilhanDialogue = new Dialogue(ref game);
@@ -67,28 +64,85 @@ namespace Aysel
             Application.Exit();
         }
 
+        private void createGame()
+        {
+            Form form = (Form)this;
+            game = new Game(ref form, 800, 600);
+            game.SetFont("Arial", 14, FontStyle.Regular);
+
+        }
+
         private void createMap()
         {
-            map = new Level(ref game, 25, 19, 32);
-            map.loadPalette("palette.bmp", 5);
-            map.loadTilemap("map1.level");
+            game.map = new Level(ref game, 25, 19, 32);
+
+            if (!game.map.loadPalette("palette.bmp", 5))
+            {
+                MessageBox.Show("Error loading pallet");
+                Application.Exit();
+            }
+            if(!game.map.loadTilemap("map1.level"))
+            {
+                MessageBox.Show("Error loading level");
+                Application.Exit();
+            }
+
+            game.map.GridPos = new Point(0, 0);
+            game.map.Update();
+
         }
+
 
         private void createAysel()
         {
-            aysel = new Character(ref game);
-            aysel.Load("aysel.char");
+            game.aysel = new Player(ref game);
+            if (!game.aysel.Load("aysel.char"))
+            {
+                MessageBox.Show("Error loading aysel.char");
+                Application.Exit();
+            }
+            game.aysel.AnimationState = Character.AnimationStates.Standing;
+            game.aysel.Position = new Point(0, 0);
+
             //aysel.Position = new Point(400 - 48, 300 - 48);
             //aysel.Position = new Point(200, 450);
-            aysel.Position = new Point(40, 428);
+            //aysel.Position = new Point(40, 428);
         }
+        private void spawnAyselOnTileEntry()
+        {
 
+            Point target = new Point(0, 0);
+            bool found = false;
+            for (int y = 0; y < 128; y++)
+            {
+                if (found) break;
+                for (int x = 0; x < 128; x++)
+                {
+                    target = new Point(x - 1, y - 1);
+                    Level.tilemapStruct tile = game.map.getTile(x, y);
+                    if (tile.data1.ToUpper() == "ENTRY")
+                    {
+                        found = true;
+                        game.aysel.Position = new Point(
+                            target.X * 32, target.Y * 32 - 16);
+                        break;
+                    }
+                }
+            }
+        }
         private void createIlhan()
         {
             ilhan = new Character(ref game);
-            ilhan.Load("ilhan.char");
+            if(!ilhan.Load("ilhan.char"))
+            {
+                MessageBox.Show("Error loading ilhan.char");
+                Application.Exit();
+                throw new Exception("ilhan.char filename does not exist");
+            }
             ilhan.Position = new Point(352, 164);
         }
+
+
     
        private void updateHeroDir()
        {
@@ -284,8 +338,8 @@ namespace Aysel
             // set posisition to level scroll position and then update level
            // if (pos.X < 0) pos.X = 0;
             //if (pos.Y < 0) pos.Y = 0;
-            map.ScrollPos = pos;
-            map.Update();
+           // map.ScrollPos = pos;
+           // map.Update();
 
            
 

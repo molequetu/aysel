@@ -112,7 +112,7 @@ namespace Aysel
 
         ~Game()
         {
-            Trace.WriteLine("Game class destructor");
+           
             p_device.Dispose();
             p_surface.Dispose();
             p_pb.Dispose();
