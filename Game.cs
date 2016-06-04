@@ -78,6 +78,7 @@ namespace Aysel
             p_frm.MaximizeBox = false;
             //adjust size for window border
             p_frm.Size = new Size(width + 6, height + 28);
+            p_frm.StartPosition = FormStartPosition.CenterScreen;
 
             //create a picturebox
             p_pb = new PictureBox();
