@@ -25,10 +25,10 @@ namespace Aysel
 
         //overrides Character.GetCurrentTilePos due to ScrollPos
         public override Point GetCurrentTilePos()
-        {
-            PointF feet = p_game.Hero.FootPos;
-            int tilex = (int)(p_game.World.ScrollPos.X + feet.X) / 32;
-            int tiley = (int)(p_game.World.ScrollPos.Y + feet.Y) / 32;
+        { 
+            PointF feet = p_game.aysel.FootPos;
+            int tilex = (int)(p_game.map.ScrollPos.X + feet.X) / 32;
+            int tiley = (int)(p_game.map.ScrollPos.Y + feet.Y) / 32;
             return new Point(tilex, tiley);
         }
 

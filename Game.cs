@@ -1,13 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Forms;
+
 
 namespace Aysel
 {
     class Game
     {   
+        /*
+         * States of key structure
+         */
+        public struct keyStates
+        {
+            public bool up, down, left, right;
+        }
+
+        /*
+         * DrawableItem structure has
+         * an item and a sprite
+         */
+        public struct DrawableItem
+        {
+            public Item item;
+            public Sprite sprite;
+        }
+
         // draw mechanism
         private Graphics p_device;
         private Bitmap p_surface;
@@ -31,9 +50,16 @@ namespace Aysel
         private Point p_mousePos;
         private MouseButtons p_mouseBtn;
 
+        // game has player, inventory, level, items, and 2 structs
+        public Player aysel;
+        public Inventory Inven;
+        public Level map;
+        public List<DrawableItem> Treasure;
+        public Items Items;
+        public keyStates keyState;
+
         public Game(ref Form form, int width, int height)
         {
-            Trace.WriteLine("Game class constructor");
 
             p_device = null;
             p_surface = null;
