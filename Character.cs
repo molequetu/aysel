@@ -520,7 +520,7 @@ namespace Aysel
             }
         }
 
-        /*
+        
         public double FootDistance(ref Character other)
         {
             return p_game.Distance(this.FootPos, other.FootPos);
@@ -540,7 +540,7 @@ namespace Aysel
         {
             return p_game.Distance(this.CenterPos, pos);
         }
-        */
+ 
         public int Experience
         {
             get { return p_experience; }
