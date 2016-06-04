@@ -88,6 +88,10 @@ namespace Aysel
             p_pb.Size = new Size(width, height);
             p_pb.BackColor = Color.Black;
 
+            // add event handler's for the mouse
+            p_pb.MouseMove += new MouseEventHandler(p_pb_MouseInput);
+            p_pb.MouseDown += new MouseEventHandler(p_pb_MouseInput);
+
             //create graphics device
             p_surface = new Bitmap(p_frm.Size.Width, p_frm.Size.Height);
             p_pb.Image = p_surface;
@@ -95,6 +99,15 @@ namespace Aysel
 
             //set the default font
             SetFont("Arial", 18, FontStyle.Regular);
+        }
+        /*
+         * Handle mouse event's
+         */
+        void p_pb_MouseInput(object sender, MouseEventArgs e)
+        {
+            p_mousePos.X = e.X;
+            p_mousePos.Y = e.Y;
+            p_mouseBtn = e.Button;
         }
 
         ~Game()
