@@ -55,7 +55,7 @@ namespace Aysel
         public Dialogue(ref Game game)
         {
             P_game = game;
-            P_corner = Positions.UpperRight;
+            P_corner = Positions.LowerRight;
             P_size = new Size(360, 280);
             P_title = "Title";
             P_message = "Message Text";

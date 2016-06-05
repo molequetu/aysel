@@ -9,6 +9,7 @@ namespace Aysel
     {
 
         private Game p_game;
+
         private int p_gold;
 
         public Player(ref Game game) : base(ref game)

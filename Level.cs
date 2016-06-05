@@ -47,7 +47,14 @@ namespace Aysel
         // watch scrolling possition
         private PointF p_scrollPos = new PointF(0, 0);
         private PointF p_subtile = new PointF(0, 0);
-        private PointF p_oldScrollPos = new PointF(-1, -1);
+        private PointF p_oldScrollPos = new PointF(0, 0);
+
+        private PointF p_oldPlayerPos = new PointF(0, 0);
+
+        private bool p_portalFlag;
+        private Point p_portalTarget;
+        private bool p_collidableFlag;
+        private tilemapStruct p_currentTile;
 
         public Level(ref Game game, int width, int height, int tileSize)
         {
@@ -197,6 +204,96 @@ namespace Aysel
          */
         public void Update()
         {
+            int steps = 4;
+
+            p_oldScrollPos = p_scrollPos;
+            p_oldPlayerPos = p_game.aysel.Position;
+
+            //up key movement
+            if (p_game.keyState.up)
+            {
+                if (p_game.aysel.Y > 300 - 48)
+                {
+                    //p_oldPlayerPos = p_game.Hero.Position;
+                    p_game.aysel.Y -= steps;
+                }
+                else
+                {
+                    //p_oldScrollPos = p_scrollPos;
+                    p_scrollPos.Y -= steps;
+                    if (p_scrollPos.Y <= 0)
+                        p_game.aysel.Y -= steps;
+                }
+            }
+            //down key movement
+            else if (p_game.keyState.down)
+            {
+                if (p_game.aysel.Y < 300 - 48)
+                {
+                    //p_oldPlayerPos = p_game.Hero.Position;
+                    p_game.aysel.Y += steps;
+                }
+                else
+                {
+                    //p_oldScrollPos = p_scrollPos;
+                    p_scrollPos.Y += steps;
+                    if (p_scrollPos.Y >= (127 - 19) * 32)
+                        p_game.aysel.Y += steps;
+                }
+            }
+
+            //left key movement
+            if (p_game.keyState.left)
+            {
+                if (p_game.aysel.X > 400 - 48)
+                {
+                    //p_oldPlayerPos = p_game.Hero.Position;
+                    p_game.aysel.X -= steps;
+                }
+                else
+                {
+                    //p_oldScrollPos = p_scrollPos;
+                    p_scrollPos.X -= steps;
+                    if (p_scrollPos.X <= 0)
+                        p_game.aysel.X -= steps;
+                }
+            }
+
+            //right key movement
+            else if (p_game.keyState.right)
+            {
+                if (p_game.aysel.X < 400 - 48)
+                {
+                    //p_oldPlayerPos = p_game.Hero.Position;
+                    p_game.aysel.X += steps;
+                }
+                else
+                {
+                    //p_oldScrollPos = p_scrollPos;
+                    p_scrollPos.X += steps;
+                    if (p_scrollPos.X >= (127 - 25) * 32)
+                        p_game.aysel.X += steps;
+                }
+            }
+
+            //resolve collidable tile
+            Point pos = p_game.aysel.GetCurrentTilePos();
+            p_currentTile = getTile(pos.X, pos.Y);
+            p_collidableFlag = p_currentTile.collidable;
+            if (p_collidableFlag)
+            {
+                p_game.aysel.Position = p_oldPlayerPos;
+                p_scrollPos = p_oldScrollPos;
+            }
+
+            //resolve portal tile
+            p_portalFlag = p_currentTile.portal;
+            if (p_currentTile.portal)
+            {
+                p_portalTarget = new Point(p_currentTile.portalx -
+                    pos.X / 32, p_currentTile.portaly - pos.Y / 32);
+            }
+
             //fill the scroll buffer only when moving
             if (p_scrollPos != p_oldScrollPos)
             {
@@ -217,17 +314,25 @@ namespace Aysel
                 p_subtile.Y = p_scrollPos.Y % p_tileSize;
 
                 //fill scroll buffer with tiles
-                int tilenum, sx, sy;
-                for (int x = 0; x < p_windowSize.Width + 1; x++)
-                    for (int y = 0; y < p_windowSize.Height + 1; y++)
-                    {
-                        sx = (int)p_scrollPos.X / p_tileSize + x;
-                        sy = (int)p_scrollPos.Y / p_tileSize + y;
-                        tilenum = p_tilemap[sy * 128 + sx].tilenum;
-                        drawTileNumber(x, y, tilenum);
-                    }
+                fillScrollBuffer();
             }
         }
+
+
+        private void fillScrollBuffer()
+        {
+            for (int tx = 0; tx < p_windowSize.Width + 1; tx++)
+            {
+                for (int ty = 0; ty < p_windowSize.Height + 1; ty++)
+                {
+                    int sx = (int)p_scrollPos.X / p_tileSize + tx;
+                    int sy = (int)p_scrollPos.Y / p_tileSize + ty;
+                    int tilenum = p_tilemap[sy * 128 + sx].tilenum;
+                    drawTileNumber(tx, ty, tilenum);
+                }
+            }
+        }
+
 
         /*
          * Draw the particular tile in 

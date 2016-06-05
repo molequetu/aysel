@@ -423,7 +423,7 @@ namespace Aysel
                 data = getElement("dropgold2", ref element);
                 p_dropGold2 = Convert.ToInt32(data);
 
-                /*
+                
                 data = getElement("drop1_num", ref element);
                 p_dropnum1 = Convert.ToInt32(data);
 
@@ -436,7 +436,7 @@ namespace Aysel
                 p_dropitem1 = getElement("drop1_item", ref element);
                 p_dropitem2 = getElement("drop2_item", ref element);
                 p_dropitem3 = getElement("drop3_item", ref element);
-                */
+                
 
             }
             catch (Exception ex)
